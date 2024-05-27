@@ -21,15 +21,15 @@ Inconvénients de l'héritage:
 
 #### Composition
 
-- Contrairement à l'héritage, où les sous-classes peuvent accéder directement aux membres protégés de la super classe, la composition force les objets à interagir uniquement via leurs interfaces publiques, maintenant ainsi une stricte séparation entre l'interface et l'implémentation.
+- Contrairement à l'héritage, la composition force les objets à interagir uniquement via leurs interfaces publiques, maintenant ainsi une stricte séparation entre l'interface et l'implémentation.
 
 - Avec la composition, les objets sont moins couplés. Chaque objet ne dépend que des interfaces des autres objets, et non de leurs implémentations spécifiques. ça réduit les dépendances et facilite les modifications ou les extensions sans affecter le code appelant
 
-- Avec la composition, chaque classe peut se concentrer sur une seule responsabilité ou tâche. Plutôt que de créer des hiérarchies complexes par héritage, où une classe hérite de multiples responsabilités, la composition permet de créer des structures plus simples et plus faciles à comprendre.
+- Avec la composition, chaque classe peut se concentrer sur une seule responsabilité. Plutôt que de créer des hiérarchies complexes par héritage, où une classe hérite de multiples responsabilités, la composition permet de créer des structures plus simples et plus faciles à comprendre.
 
 -  En utilisant des interfaces, la composition permet de combiner des objets de classes différentes qui n'ont pas de relation d'héritage. Les objets implémentent la même interface, ils peuvent être utilisés de manière interchangeable dans la même composition.
 
-Exemple:
+**Exemple :**
 
 ````java
 interface Notification { void send(String message); }
@@ -84,7 +84,7 @@ public class Main {
 
 1. **Il existe une relation "a-un" (has-a)** : Quand tu as besoin de créer des objets complexes en combinant des objets plus simples. Par exemple, une `Voiture` a un `Moteur`.
 2. **Tu veux éviter les problèmes liés à la modification des super classes** : Avec la composition, les objets sont moins couplés, ce qui facilite la maintenance et l'évolution du code.
-3. **Tu veux utiliser des comportements dynamiques** : La composition permet de changer les comportements dynamiquement à l'exécution en remplaçant les objets composants par d'autres objets implémentant la même interface.
+3. Tu veux utiliser des comportements dynamiques permettant de changer à l'exécution des objets composants par d'autres objets implémentant la même interface.
 
 
 
