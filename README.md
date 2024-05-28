@@ -72,6 +72,75 @@ public class Main {
 }
 ````
 
+Ou avec des lambda:
+````java
+interface Notification {
+    void send(String message);
+}
+
+class NotificationService {
+    private Notification notification;
+
+    public NotificationService(Notification notification) {
+        this.notification = notification;
+    }
+
+    public void notifyUser(String message) {
+        notification.send(message);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Utilisation de lambdas pour créer des instances de Notification
+        Notification emailNotification = (message) -> System.out.println("Sending email: " + message);
+        Notification smsNotification = (message) -> System.out.println("Sending SMS: " + message);
+
+        NotificationService emailService = new NotificationService(emailNotification);
+        NotificationService smsService = new NotificationService(smsNotification);
+
+        emailService.notifyUser("Hello via Email!");
+        smsService.notifyUser("Hello via SMS!");
+    }
+}
+````
+
+ou encore plus simple:
+
+````java
+interface Notification {
+    void send(String message);
+}
+
+class NotificationService {
+    private Notification notification;
+
+    public NotificationService(Notification notification) {
+        this.notification = notification;
+    }
+
+    public void notifyUser(String message) {
+        notification.send(message);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+
+        // Va construire un objet implémentant Notification et surchargeant la méthode send
+        NotificationService emailService = new NotificationService((message) -> {
+            System.out.println("Sending email: " + message);
+        });
+        NotificationService smsService = new NotificationService((message) -> {
+            System.out.println("Sending sms: " + message);
+        });
+
+        emailService.notifyUser("Hello via Email!");
+        smsService.notifyUser("Hello via SMS!");
+    }
+}
+````
+
 
 
 #### Utilise l'héritage lorsque :
@@ -113,9 +182,155 @@ Diagramme plus parlant:
 
 L'observateur peut être un singleton si utilisé de manière unique
 
+
+
+#### Exemple PropertyChangeListener + interface fonctionnelle
+
+Interface:
+
+````java
+import java.beans.PropertyChangeListener;
+
+@FunctionalInterface
+public interface ListenerRegistrar {
+    void register(PropertyChangeListener listener);
+}
+````
+
+
+
+Sujet:
+
+````java
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
+public class Subject {
+    private String property;
+    private PropertyChangeSupport support;
+
+    public Subject() {
+        this.support = new PropertyChangeSupport(this);
+    }
+
+    // Méthode pour obtenir une instance de ListenerRegistrar
+    public ListenerRegistrar getListenerRegistrar() {
+        return this::addPropertyChangeListener;
+    }
+
+    // Ajoute un PropertyChangeListener
+    private void addPropertyChangeListener(PropertyChangeListener pcl) {
+        support.addPropertyChangeListener(pcl);
+    }
+
+    // Supprime un PropertyChangeListener
+    public void removePropertyChangeListener(PropertyChangeListener pcl) {
+        support.removePropertyChangeListener(pcl);
+    }
+
+    // Méthode pour changer la propriété et notifier les observateurs
+    public void setProperty(String value) {
+        String oldValue = this.property;
+        this.property = value;
+        // Notifie les observateurs du changement de la propriété
+        support.firePropertyChange("property", oldValue, this.property);
+    }
+
+    // Méthode pour obtenir la valeur de la propriété
+    public String getProperty() {
+        return property;
+    }
+}
+````
+
+Observer:
+
+````java
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+public class Observer implements PropertyChangeListener {
+    private String observerName;
+
+    public Observer(String observerName, ListenerRegistrar registrar) {
+        this.observerName = observerName;
+        registrar.register(this);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // Affiche le changement de propriété
+        System.out.println(observerName + " a été notifié. La propriété '"
+                + evt.getPropertyName() + "' a changé de '"
+                + evt.getOldValue() + "' à '"
+                + evt.getNewValue() + "'.");
+    }
+}
+````
+
+Utilisation:
+
+````java
+public class Main {
+    public static void main(String[] args) {
+        // Créer le sujet
+        Subject subject = new Subject();
+
+        // Obtenir l'instance de ListenerRegistrar pour attacher les observateurs
+        ListenerRegistrar registrar = subject.getListenerRegistrar();
+
+        // Créer un observateur qui s'enregistre automatiquement auprès du sujet
+        Observer observer1 = new Observer("Observateur 1", registrar);
+        Observer observer2 = new Observer("Observateur 2", registrar);
+
+        // Changer la propriété du sujet
+        subject.setProperty("Valeur initiale");
+        subject.setProperty("Nouvelle valeur");
+
+        // Supprimer un observateur et changer la propriété
+        subject.removePropertyChangeListener(observer1);
+        subject.setProperty("Dernière valeur");
+    }
+}
+````
+
+
+
 ## 2 Singleton
 
+Garantit qu’une classe n’a qu’une seule instance et fournit un accès global à cette instance.
 
+````java
+public class Singleton {
+    private static class Instance {
+        static final Singleton instance = new Singleton();
+    }
+
+    private Singleton() { }
+
+    public static Singleton getInstance() {
+        return Instance.instance;
+    }
+
+    public void showMessage() {
+        System.out.println("Bonjour, je suis une instance unique de Singleton !");
+    }
+}
+````
+
+Utilisation:
+
+````java
+public class Main {
+    public static void main(String[] args) {
+        // Obtention de l'unique instance du singleton
+        Singleton singleton = Singleton.getInstance();
+
+        // Appel d'une méthode de l'instance Singleton
+        singleton.showMessage();
+    }
+}
+````
 
 
 
