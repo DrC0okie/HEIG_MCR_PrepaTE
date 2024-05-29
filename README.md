@@ -1,16 +1,18 @@
 # MCR - Résumé
 
+[toc]
 
 
-## Principes généraux
 
-### Encapsulation
+## 1 Principes généraux
+
+### 1.1 Encapsulation
 
 Les classes devraient être opaques. l’encapsulation permet de masquer la structure interne et les détails d’implémentation d’un objet. les interactions avec un objet s’effectuent au moyen des opérations définies dans son interface publique.
 
 la représentation interne de la classe peut être modifiée sans impacter sur son interface => pas de modification des classes y accédant
 
-### Composition vs héritage
+### 1.2 Composition vs héritage
 
 ![](img/composition.png)
 
@@ -157,12 +159,12 @@ public class Main {
 
 
 
-### Open-closed principle
+### 1.3 Open-closed principle
 
 - Ouvert : il doit être possible d’étendre une classe pour proposer des fonctionnalités non prévues lors de sa conception.
 - Fermé : les extensions sont introduites sans modifier le code existant.
 
-### Liskov substitution principle
+### 1.4 Liskov substitution principle
 
 Une méthode utilisant des objets d’une classe doit pouvoir utiliser des objets dérivés de cette classe sans même le savoir.
 
@@ -173,7 +175,7 @@ Concevoir **pour une interface**, pas pour une implémentation:
 - Un objet peut être facilement remplacé par un autre (types différents,mais mêmes interfaces).
 - Séparation des interfaces: les clients ne doivent pas être forcés de dépendre d’interfaces qu’ils n’utilisent pas.
 
-## 1 Observer
+## 2 Observer
 
 ![](img/observer.png)
 
@@ -184,7 +186,9 @@ L'observateur peut être un singleton si utilisé de manière unique
 
 
 
-#### Exemple PropertyChangeListener + interface fonctionnelle
+### 2.1 Exemple 
+
+**`PropertyChangeListener` + interface fonctionnelle**
 
 Interface:
 
@@ -196,8 +200,6 @@ public interface ListenerRegistrar {
     void register(PropertyChangeListener listener);
 }
 ````
-
-
 
 Sujet:
 
@@ -296,7 +298,7 @@ public class Main {
 
 
 
-## 2 Singleton
+## 3 Singleton
 
 Garantit qu’une classe n’a qu’une seule instance et fournit un accès global à cette instance.
 
@@ -334,32 +336,329 @@ public class Main {
 
 
 
-## 3 Factory
+## 4 Factory Method (modèle de classe => héritage)
+
+On utilise le facory quand :
+
+1. **Tu as une `hiérarchie` de classes produits** :
+   - Tu veux déléguer la création d'objets à des sous-classes.
+   - Tu as une classe de base et plusieurs sous-classes, et tu veux que chaque sous-classe décide quel objet créer.
+2. **La création de l'objet peut varier** :
+   - Tu veux permettre aux sous-classes de modifier la façon dont les objets sont créés.
+   - Par exemple, tu as une classe `Document` avec une méthode `createPage()` que les sous-classes comme `WordDocument` ou `PDFDocument` peuvent implémenter pour créer des pages spécifiques à chaque type de document.
+3. **Tu veux une seule famille de produits** :
+   - Tu n'as besoin de créer qu'un seul type de produit.
+
+
+
+La factory méthod utilise une interface pour créer des objets dans une classe parent, mais permet aux sous-classes de changer le type d'objet créé.
+
+
+
+![](img/factory.png)
 
 
 
 
 
-## 4 Abstract factory
+### 4.1 Exemple
+
+````java
+abstract class Document { // Creator abstrait
+    public void newDocument() {
+        Page page = createPage();
+        page.render();
+    }
+
+    // Factory method
+    protected abstract Page createPage();
+}
+
+class WordDocument extends Document { // Creator 1
+    @Override
+    protected Page createPage() {
+        return new WordPage();
+    }
+}
+
+class PDFDocument extends Document { // Creator 2
+    @Override
+    protected Page createPage() {
+        return new PDFPage();
+    }
+}
+
+interface Page {
+    void render();
+}
+
+class WordPage implements Page { // Produit 1
+    @Override
+    public void render() {
+        System.out.println("Rendering Word page");
+    }
+}
+
+class PDFPage implements Page { // Produit 2
+    @Override
+    public void render() {
+        System.out.println("Rendering PDF page");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        
+        // Le créateur concret 1 créé le produit concret 1
+        Document wordDoc = new WordDocument();
+        wordDoc.newDocument();
+
+        Document pdfDoc = new PDFDocument();
+        pdfDoc.newDocument();
+    }
+}
+````
+
+
+
+## 5 Abstract factory (modèle objet => délégation)
+
+On utilise le facory quand :
+
+1. **Tu as plusieurs `familles` de produits** :
+   - Tu veux créer des familles de produits liés ou dépendants les uns des autres.
+   - Par exemple, tu veux créer des objets GUI (boutons, textes, etc.) pour différentes plateformes (Windows, MacOS, Linux).
+2. **Tu veux garantir que les produits d'une même famille soient utilisés ensemble** :
+   - Les produits créés par une famille sont conçus pour fonctionner ensemble.
+3. **Tu veux centraliser la création d'objets complexes** :
+   - La création d'objets peut impliquer plusieurs étapes ou la création de différents sous-objets.
+
+
+
+![](img/abstract_factory.png)
+
+### 5.1 Exemple
+
+````java
+interface GUIFactory {
+    Button createButton();
+    Text createText();
+}
+
+class WindowsFactory implements GUIFactory { // Factory Windows est un singleton
+
+    private static class Instance {
+        static final WindowsFactory instance = new WindowsFactory();
+    }
+
+    private WindowsFactory() { }
+
+    public static GUIFactory getInstance() {
+        return Instance.instance;
+    }
+
+    @Override
+    public Button createButton() {
+        return new WindowsButton();
+    }
+
+    @Override
+    public Text createText() {
+        return new WindowsText();
+    }
+}
+
+class MacOSFactory implements GUIFactory { // Factory MacOS est un singleton
+    private static class Instance {
+        static final MacOSFactory instance = new MacOSFactory();
+    }
+
+    private MacOSFactory() { }
+
+    public static GUIFactory getInstance() {
+        return Instance.instance;
+    }
+
+
+    @Override
+    public Button createButton() {
+        return new MacOSButton();
+    }
+
+    @Override
+    public Text createText() {
+        return new MacOSText();
+    }
+}
+
+interface Button {
+    void click();
+}
+
+interface Text {
+    void display();
+}
+
+class WindowsButton implements Button { // Famille Windows
+    @Override
+    public void click() {
+        System.out.println("Windows button clicked");
+    }
+}
+
+class WindowsText implements Text { // Famille Windows
+    @Override
+    public void display() {
+        System.out.println("Windows text displayed");
+    }
+}
+
+class MacOSButton implements Button { // Famille MacOS
+    @Override
+    public void click() {
+        System.out.println("MacOS button clicked");
+    }
+}
+
+class MacOSText implements Text { // Famille MacOS
+    @Override
+    public void display() {
+        System.out.println("MacOS text displayed");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        GUIFactory factory; // Ici, on ne connait pas encore la factory concrète
+
+        // Création de produits pour Windows
+        factory = WindowsFactory.getInstance();
+        Button button1 = factory.createButton();
+        Text text1 = factory.createText();
+        button1.click(); // windows button is called
+        text1.display(); // Windows text is called
+
+        // Création de produits pour MacOS
+        factory = MacOSFactory.getInstance();
+        Button macButton = factory.createButton();
+        Text macText = factory.createText();
+        macButton.click();
+        macText.display();
+    }
+}
+````
 
 
 
 
 
-## 5 Composite
+## 6 Composite
+
+L’utilisation du modèle Composite est recommandée :
+
+- pour représenter des hiérarchies de l’individu à l’ensemble 
+- pour que le client n’ait pas à considérer les différences entre combinaison d’objets et objets individuels : ils seront traités de manière uniforme.
+
+
+
+![](img/composite.png)
+
+### 6.1 Exemple
+
+```java
+// Interface Component
+interface Shape {
+    void draw(String indentation);
+}
+```
+
+```java
+// Classe Leaf pour un cercle
+class Circle implements Shape {
+    @Override
+    public void draw(String indentation) {
+        System.out.println(indentation + "Drawing a Circle");
+    }
+}
+
+// Classe Leaf pour un rectangle
+class Rectangle implements Shape {
+    @Override
+    public void draw(String indentation) {
+        System.out.println(indentation + "Drawing a Rectangle");
+    }
+}
+```
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+// Classe Composite pour un groupe de formes
+class Group implements Shape {
+    private List<Shape> shapes = new ArrayList<>();
+
+    public void addShape(Shape shape) {
+        shapes.add(shape);
+    }
+
+    public void removeShape(Shape shape) {
+        shapes.remove(shape);
+    }
+
+    @Override
+    public void draw(String indentation) {
+        System.out.println(indentation + "Drawing a Group:");
+        for (Shape shape : shapes) {
+            shape.draw(indentation + "  ");
+        }
+    }
+}
+```
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // Créer des formes simples
+        Shape circle1 = new Circle();
+        Shape circle2 = new Circle();
+        Shape rectangle = new Rectangle();
+
+        // Créer un groupe de formes
+        Group group1 = new Group();
+        group1.addShape(circle1);
+        group1.addShape(rectangle);
+
+        // Créer un autre groupe de formes et ajouter un groupe existant
+        Group group2 = new Group();
+        group2.addShape(circle2);
+        group2.addShape(group1);
+
+        // Dessiner tous les groupes et formes
+        group2.draw("");
+    }
+}
+```
+
+Output:
+
+````
+Drawing a Group:
+  Drawing a Circle
+  Drawing a Group:
+    Drawing a Circle
+    Drawing a Rectangle
+````
 
 
 
 
 
-## 6 Adapter
+## 7 Adapter
 
 
 
 
 
-## 7 State
+## 8 State
 
-
-
-### 
