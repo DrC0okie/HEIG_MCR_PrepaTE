@@ -439,116 +439,130 @@ On utilise le facory quand :
 
 ### 5.1 Exemple
 
-````java
-interface GUIFactory {
-    Button createButton();
-    Text createText();
+1. Définir les Interfaces des Produits
+
+```java
+// Interface pour les Soldats
+interface Soldier {
+    void attack();
 }
 
-class WindowsFactory implements GUIFactory { // Factory Windows est un singleton
+// Interface pour les Véhicules
+interface Vehicle {
+    void move();
+}
+```
 
-    private static class Instance {
-        static final WindowsFactory instance = new WindowsFactory();
+2. Implémenter les Produits Concrets
+
+```java
+// Soldats Atreides
+class AtreidesSoldier implements Soldier {
+    @Override
+    public void attack() {
+        System.out.println("Atreides soldier attacks with a lasgun!");
     }
+}
 
-    private WindowsFactory() { }
+// Véhicules Atreides
+class AtreidesVehicle implements Vehicle {
+    @Override
+    public void move() {
+        System.out.println("Atreides vehicle moves swiftly across the desert!");
+    }
+}
 
-    public static GUIFactory getInstance() {
-        return Instance.instance;
+// Soldats Harkonnen
+class HarkonnenSoldier implements Soldier {
+    @Override
+    public void attack() {
+        System.out.println("Harkonnen soldier attacks with a flamethrower!");
+    }
+}
+
+// Véhicules Harkonnen
+class HarkonnenVehicle implements Vehicle {
+    @Override
+    public void move() {
+        System.out.println("Harkonnen vehicle roars across the battlefield!");
+    }
+}
+```
+
+3. Définir l'Abstract Factory
+
+```java
+// Interface Abstract Factory
+interface HouseFactory {
+    Soldier createSoldier();
+    Vehicle createVehicle();
+}
+```
+
+4. Implémenter les Factories Concrètes
+
+```java
+// Factory pour la maison Atreides
+class AtreidesFactory implements HouseFactory {
+    @Override
+    public Soldier createSoldier() {
+        return new AtreidesSoldier();
     }
 
     @Override
-    public Button createButton() {
-        return new WindowsButton();
+    public Vehicle createVehicle() {
+        return new AtreidesVehicle();
+    }
+}
+
+// Factory pour la maison Harkonnen
+class HarkonnenFactory implements HouseFactory {
+    @Override
+    public Soldier createSoldier() {
+        return new HarkonnenSoldier();
     }
 
     @Override
-    public Text createText() {
-        return new WindowsText();
+    public Vehicle createVehicle() {
+        return new HarkonnenVehicle();
     }
 }
+```
 
-class MacOSFactory implements GUIFactory { // Factory MacOS est un singleton
-    private static class Instance {
-        static final MacOSFactory instance = new MacOSFactory();
-    }
+5. Utilisation du Pattern Abstract Factory
 
-    private MacOSFactory() { }
-
-    public static GUIFactory getInstance() {
-        return Instance.instance;
-    }
-
-
-    @Override
-    public Button createButton() {
-        return new MacOSButton();
-    }
-
-    @Override
-    public Text createText() {
-        return new MacOSText();
-    }
-}
-
-interface Button {
-    void click();
-}
-
-interface Text {
-    void display();
-}
-
-class WindowsButton implements Button { // Famille Windows
-    @Override
-    public void click() {
-        System.out.println("Windows button clicked");
-    }
-}
-
-class WindowsText implements Text { // Famille Windows
-    @Override
-    public void display() {
-        System.out.println("Windows text displayed");
-    }
-}
-
-class MacOSButton implements Button { // Famille MacOS
-    @Override
-    public void click() {
-        System.out.println("MacOS button clicked");
-    }
-}
-
-class MacOSText implements Text { // Famille MacOS
-    @Override
-    public void display() {
-        System.out.println("MacOS text displayed");
-    }
-}
-
+```java
 public class Main {
     public static void main(String[] args) {
-        GUIFactory factory; // Ici, on ne connait pas encore la factory concrète
+        // Créer une factory pour la maison Atreides
+        HouseFactory atreidesFactory = new AtreidesFactory();
+        Soldier atreidesSoldier = atreidesFactory.createSoldier();
+        Vehicle atreidesVehicle = atreidesFactory.createVehicle();
+        
+        // Utiliser les produits créés
+        atreidesSoldier.attack();
+        atreidesVehicle.move();
 
-        // Création de produits pour Windows
-        factory = WindowsFactory.getInstance();
-        Button button1 = factory.createButton();
-        Text text1 = factory.createText();
-        button1.click(); // windows button is called
-        text1.display(); // Windows text is called
-
-        // Création de produits pour MacOS
-        factory = MacOSFactory.getInstance();
-        Button macButton = factory.createButton();
-        Text macText = factory.createText();
-        macButton.click();
-        macText.display();
+        // Créer une factory pour la maison Harkonnen
+        HouseFactory harkonnenFactory = new HarkonnenFactory();
+        Soldier harkonnenSoldier = harkonnenFactory.createSoldier();
+        Vehicle harkonnenVehicle = harkonnenFactory.createVehicle();
+        
+        // Utiliser les produits créés
+        harkonnenSoldier.attack();
+        harkonnenVehicle.move();
     }
 }
+```
+
+Output:
+
 ````
-
-
+Atreides soldier attacks with a lasgun!
+Atreides vehicle moves swiftly across the desert!
+Harkonnen soldier attacks with a flamethrower!
+Harkonnen vehicle roars across the battlefield!
+````
 
 
 
@@ -656,9 +670,267 @@ Drawing a Group:
 
 ## 7 Adapter
 
+Le pattern Adapter est un design pattern structurel qui permet de convertir l'interface d'une classe en une autre interface que les clients attendent. Il permet à des classes qui ne pourraient pas normalement fonctionner ensemble en raison d'incompatibilités d'interfaces de collaborer.
 
+1. **Client** : La classe qui utilise l'interface cible.
+2. **Cible (Target)** : L'interface attendue par le client.
+3. **Adapté (Adaptee)** : La classe existante qui doit être adaptée pour être compatible avec l'interface cible.
+4. **Adaptateur (Adapter)** : La classe qui implémente l'interface cible et traduit les appels du client en appels à l'interface de l'adapté.
+
+
+
+### 7.1 Exemple
+
+1. Définir l'Interface Cible (Target)
+
+```java
+// Interface cible pour les personnages du jeu
+interface Character {
+    void attack();
+}
+```
+
+2. Implémenter des Personnages Existants
+
+```java
+// Classe pour un guerrier Atreides
+class AtreidesWarrior implements Character {
+    @Override
+    public void attack() {
+        System.out.println("Atreides warrior attacks with a lasgun!");
+    }
+}
+
+// Classe pour un guerrier Harkonnen
+class HarkonnenWarrior implements Character {
+    @Override
+    public void attack() {
+        System.out.println("Harkonnen warrior attacks with a sword!");
+    }
+}
+```
+
+3. Implémenter la Classe Adaptée (Adaptee)
+
+```java
+// Classe existante pour un guerrier Fremen avec une interface différente
+class FremenWarrior {
+    public void crySkirmish() {
+        System.out.println("Fremen warrior cries 'Muad'Dib!' and attacks with a crysknife!");
+    }
+}
+```
+
+4. Implémenter l'Adaptateur (Adapter)
+
+```java
+// Adaptateur qui adapte FremenWarrior à l'interface Character
+class FremenWarriorAdapter implements Character {
+    
+    private static class Instance {
+        static final Singleton instance = new Singleton();
+    }
+
+    private Singleton() { }
+
+    public static Singleton getInstance() {
+        return Instance.instance;
+    }
+    
+    private FremenWarrior fremenWarrior;
+
+    public FremenWarriorAdapter(FremenWarrior fremenWarrior) {
+        this.fremenWarrior = fremenWarrior;
+    }
+
+    @Override
+    public void attack() {
+        // Adapter l'appel à l'interface de FremenWarrior
+        fremenWarrior.crySkirmish();
+    }
+}
+```
+
+5. Utilisation du Pattern Adapter
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // Créer des personnages existants
+        Character atreidesWarrior = new AtreidesWarrior();
+        Character harkonnenWarrior = new HarkonnenWarrior();
+
+        // Créer un guerrier Fremen
+        FremenWarrior fremenWarrior = new FremenWarrior();
+
+        // Adapter le guerrier Fremen pour qu'il corresponde à l'interface Character
+        Character fremenAdapter = new FremenWarriorAdapter(fremenWarrior);
+
+        // Ajouter les personnages dans un tableau pour simuler une bataille
+        Character[] characters = { atreidesWarrior, harkonnenWarrior, fremenAdapter };
+
+        // Simuler une attaque de chaque personnage
+        for (Character character : characters) {
+            character.attack();
+        }
+    }
+}
+```
+
+Output:
+
+````
+Atreides warrior attacks with a lasgun!
+Harkonnen warrior attacks with a sword!
+Fremen warrior cries 'Muad'Dib!' and attacks with a crysknife!
+````
 
 
 
 ## 8 State
+
+ Le pattern State est un design pattern comportemental qui permet à un objet de changer son comportement lorsque son état change. Ce pattern est particulièrement utile pour les objets qui peuvent être dans un ou plusieurs états et dont le comportement varie en fonction de l'état actuel.
+
+Concept du pattern:
+
+1. **Context** : La classe qui contient l'état actuel de l'objet et délègue le comportement à l'objet état.
+2. **State** : Une interface ou une classe abstraite qui définit les comportements associés à un état particulier.
+3. **Concrete States** : Les classes concrètes qui implémentent les comportements spécifiques pour chaque état.
+
+### 8.1 Exemple
+
+
+
+1. Définir l'Interface State
+
+```java
+// Interface State
+interface State {
+    void attack(FremenWarrior warrior);
+    void defend(FremenWarrior warrior);
+    void rest(FremenWarrior warrior);
+}
+```
+
+2. Implémenter les États Concrets
+
+```java
+// État de repos (Idle)
+class IdleState implements State {
+    @Override
+    public void attack(FremenWarrior warrior) {
+        System.out.println("Fremen warrior starts attacking!");
+        warrior.setState(new AttackingState()); // Set state quand on change d'état
+    }
+
+    @Override
+    public void defend(FremenWarrior warrior) {
+        System.out.println("Fremen warrior starts defending!");
+        warrior.setState(new DefendingState());
+    }
+
+    @Override
+    public void rest(FremenWarrior warrior) {
+        System.out.println("Fremen warrior is already resting.");
+    }
+}
+
+// État d'attaque
+class AttackingState implements State {
+    @Override
+    public void attack(FremenWarrior warrior) {
+        System.out.println("Fremen warrior is already attacking!");
+    }
+
+    @Override
+    public void defend(FremenWarrior warrior) {
+        System.out.println("Fremen warrior switches to defending!");
+        warrior.setState(new DefendingState());
+    }
+
+    @Override
+    public void rest(FremenWarrior warrior) {
+        System.out.println("Fremen warrior stops attacking and rests.");
+        warrior.setState(new IdleState());
+    }
+}
+
+// État de défense
+class DefendingState implements State {
+    @Override
+    public void attack(FremenWarrior warrior) {
+        System.out.println("Fremen warrior switches to attacking!");
+        warrior.setState(new AttackingState());
+    }
+
+    @Override
+    public void defend(FremenWarrior warrior) {
+        System.out.println("Fremen warrior is already defending!");
+    }
+
+    @Override
+    public void rest(FremenWarrior warrior) {
+        System.out.println("Fremen warrior stops defending and rests.");
+        warrior.setState(new IdleState());
+    }
+}
+```
+
+3. Implémenter le Contexte
+
+```java
+class FremenWarrior {
+    private State state;
+
+    public FremenWarrior() {
+        // Initialement en état de repos
+        this.state = new IdleState();
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public void attack() {
+        state.attack(this);
+    }
+
+    public void defend() {
+        state.defend(this);
+    }
+
+    public void rest() {
+        state.rest(this);
+    }
+}
+```
+
+4. Utilisation du Pattern State
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        FremenWarrior warrior = new FremenWarrior();
+
+        // Essayer de différentes actions et observer les transitions d'état
+        warrior.attack();  // Idle -> Attacking
+        warrior.defend();  // Attacking -> Defending
+        warrior.rest();    // Defending -> Idle
+        warrior.rest();    // Idle -> Idle
+        warrior.defend();  // Idle -> Defending
+        warrior.attack();  // Defending -> Attacking
+    }
+}
+```
+
+output:
+
+````
+Fremen warrior starts attacking!
+Fremen warrior switches to defending!
+Fremen warrior stops defending and rests.
+Fremen warrior is already resting.
+Fremen warrior starts defending!
+Fremen warrior switches to attacking!
+````
 
