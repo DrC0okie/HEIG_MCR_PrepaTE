@@ -334,6 +334,76 @@ public class Main {
 }
 ````
 
+### Multiton
+
+Imaginons un exemple où nous avons un nombre limité de connexions à une base de données. Nous allons créer un Multiton pour gérer ces connexions.
+
+1. Définir la Classe Multiton
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class DatabaseConnection {
+    private static final int MAX_INSTANCES = 3;  // Limite du nombre d'instances
+    private static final Map<Integer, DatabaseConnection> instances = new HashMap<>();
+    private static int nextInstanceId = 0;
+
+    private DatabaseConnection() {
+        // Initialisation de la connexion
+        System.out.println("DatabaseConnection instance created.");
+    }
+
+    // Méthode pour obtenir une instance de DatabaseConnection
+    public static synchronized DatabaseConnection getInstance() {
+        if (instances.size() < MAX_INSTANCES) {
+            DatabaseConnection instance = new DatabaseConnection();
+            instances.put(nextInstanceId, instance);
+            nextInstanceId++;
+            return instance;
+        } else {
+            // Réutiliser une instance existante (par exemple, algorithme de rotation)
+            int instanceId = nextInstanceId % MAX_INSTANCES;
+            nextInstanceId++;
+            return instances.get(instanceId);
+            // Ou si non throw une exception
+        }
+    }
+    
+    public static synchronized void releaseInstance(DatabaseConnection instance) {
+        
+        // Retirer l'instance de la liste
+        instances.values().remove(instance);
+        
+        // Libérer l'instance
+        System.out.println("DatabaseConnection instance released.");
+    }
+}
+
+```
+
+2. Utilisation du Multiton
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        // Récupérer des instances de DatabaseConnection
+        DatabaseConnection connection1 = DatabaseConnection.getInstance();
+        DatabaseConnection connection2 = DatabaseConnection.getInstance();
+        DatabaseConnection connection3 = DatabaseConnection.getInstance();
+        DatabaseConnection connection4 = DatabaseConnection.getInstance();  // Réutilise une instance existante
+
+        // Afficher les instances pour voir le comportement
+        System.out.println(connection1);
+        System.out.println(connection2);
+        System.out.println(connection3);
+        System.out.println(connection4);
+    }
+}
+```
+
+
+
 
 
 ## 4 Factory Method (modèle de classe => héritage)
@@ -726,16 +796,6 @@ class FremenWarrior {
 ```java
 // Adaptateur qui adapte FremenWarrior à l'interface Character
 class FremenWarriorAdapter implements Character {
-    
-    private static class Instance {
-        static final Singleton instance = new Singleton();
-    }
-
-    private Singleton() { }
-
-    public static Singleton getInstance() {
-        return Instance.instance;
-    }
     
     private FremenWarrior fremenWarrior;
 
